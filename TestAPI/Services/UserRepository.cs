@@ -14,7 +14,7 @@ namespace _301168447_Ismail_Mehmood_COMP306_Implementation.Services
 {
     public class UserRepository : IUserRepository
     {
-        readonly string bucketName = "ismail_mehmood_implementation";
+        readonly string bucketName = "ismail.mehmood.implementation";
         public async Task AddUserAsync(User user, IFormFile file)
         {
             if (!String.IsNullOrEmpty(user.FileName))
@@ -61,6 +61,13 @@ namespace _301168447_Ismail_Mehmood_COMP306_Implementation.Services
         {
             List<ScanCondition> conditions = new();
             return await DynamoClient.context.ScanAsync<User>(conditions).GetRemainingAsync();
+        }
+
+        public async Task PatchUserAsync(int userId, bool approved)
+        {
+            var user = await GetUserByIdAsync(userId);
+            user.Approved = approved;
+            await DynamoClient.context.SaveAsync(user);
         }
 
         public async Task UpdateUserAsync(int userId, User user, IFormFile file)

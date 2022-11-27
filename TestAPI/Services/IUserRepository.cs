@@ -15,6 +15,7 @@ namespace _301168447_Ismail_Mehmood_COMP306_Implementation.Services
         Task<User> GetUserByIdAsync(int userId);
         Task AddUserAsync(User user, IFormFile file);
         Task UpdateUserAsync(int userId, User user, IFormFile file);
+        Task PatchUserAsync(int userId, bool approved);
         void DeleteUserAsync(int userId);
     }
 }

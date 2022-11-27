@@ -6,10 +6,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using _301168447_Ismail_Mehmood_COMP306_Implementation.Models;
-using Amazon.DynamoDBv2.DataModel;
-using Amazon.DynamoDBv2.DocumentModel;
-using Amazon.S3.Model;
-using System.IO;
 using _301168447_Ismail_Mehmood_COMP306_Implementation.Services;
 
 namespace _301168447_Ismail_Mehmood_COMP306_Implementation.Controllers
@@ -66,6 +62,13 @@ namespace _301168447_Ismail_Mehmood_COMP306_Implementation.Controllers
                 }
             }
 
+            return NoContent();
+        }
+
+        [HttpPatch("{userId}")]
+        public async Task<IActionResult> PatchUser(int userId, [FromForm] bool approved)
+        {
+            await _userRepository.PatchUserAsync(userId, approved);
             return NoContent();
         }
 

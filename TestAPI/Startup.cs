@@ -35,6 +35,7 @@ namespace _301168447_Ismail_Mehmood_COMP306_Implementation
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "TestAPI", Version = "v1" });
             });
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IBookRepository, BookRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
