@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using _301168447_Ismail_Mehmood_COMP306_Implementation.Models;
+using _301168447_Ismail_Mehmood_COMP306_Implementation.Services;
 
 namespace _301168447_Ismail_Mehmood_COMP306_Implementation
 {
@@ -28,12 +29,12 @@ namespace _301168447_Ismail_Mehmood_COMP306_Implementation
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<BookContext>(opt => opt.UseInMemoryDatabase("BookList"));
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "TestAPI", Version = "v1" });
             });
+            services.AddScoped<IUserRepository, UserRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

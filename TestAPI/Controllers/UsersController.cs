@@ -10,6 +10,7 @@ using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.S3.Model;
 using System.IO;
+using _301168447_Ismail_Mehmood_COMP306_Implementation.Services;
 
 namespace _301168447_Ismail_Mehmood_COMP306_Implementation.Controllers
 {
@@ -17,66 +18,45 @@ namespace _301168447_Ismail_Mehmood_COMP306_Implementation.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        string bucketName = "ismail_mehmood_implementation";
-        public UsersController()
+        private IUserRepository _userRepository;
+        public UsersController(IUserRepository userRepository)
         {
+            _userRepository = userRepository;
         }
 
         // GET: api/Users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUser()
         {
-            List<ScanCondition> conditions = new();
-            return await DynamoClient.context.ScanAsync<User>(conditions).GetRemainingAsync();
+            var users = await _userRepository.GetUsersAsync();
+            return Ok(users);
         }
 
         // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<User>> GetUser(int userId)
         {
-            List<ScanCondition> conditions = new List<ScanCondition>();
-            ScanCondition condition = new ScanCondition("UserId", ScanOperator.Equal, id);
-            conditions.Add(condition);
-
-            var users = await DynamoClient.context.ScanAsync<User>(conditions).GetRemainingAsync();
-
-            if (users == null)
-            {
-                return NotFound();
-            }
-
-            var user = users[0];
-
-            return user;
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            return Ok(user);
         }
 
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user, [FromForm] IFormFile file)
+        [HttpPut("{userId}")]
+        public async Task<IActionResult> PutUser(int userId, User user, [FromForm] IFormFile file)
         {
-            if (id != user.UserId)
+            /*if (userId != user.UserId)
             {
                 return BadRequest();
-            }
+            }*/
 
             try
             {
-                if (!String.IsNullOrEmpty(user.FileName))
-                {
-                    var request = new PutObjectRequest()
-                    {
-                        BucketName = bucketName,
-                        Key = file.FileName,
-                        InputStream = file.OpenReadStream(),
-                        ContentType = file.ContentType
-                    };
-                }
-                await DynamoClient.context.SaveAsync(user);
+                await _userRepository.UpdateUserAsync(userId, user, file);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (await DynamoClient.context.LoadAsync<User>(id) == null)
+                if (await _userRepository.UserExistsAsync(userId) == false)
                 {
                     return NotFound();
                 }
@@ -94,33 +74,20 @@ namespace _301168447_Ismail_Mehmood_COMP306_Implementation.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user, [FromForm] IFormFile file)
         {
-            if(new FileInfo(file.FileName).Exists)
-            {
-                var request = new PutObjectRequest()
-                {
-                    BucketName = bucketName,
-                    Key = file.FileName,
-                    InputStream = file.OpenReadStream(),
-                    ContentType = file.ContentType
-                };
-            }
-
-            TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
-            int epoch = (int)t.TotalSeconds;
-            int uuid = epoch - 1669486372;
-
-            user.UserId = uuid;
-            user.Approved = false;
-            await DynamoClient.context.SaveAsync(user);
+            await _userRepository.AddUserAsync(user, file);
 
             return CreatedAtAction("GetUser", new { id = user.UserId }, user);
         }
 
         // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
+        [HttpDelete("{userId}")]
+        public async Task<IActionResult> DeleteUser(int userId)
         {
-            await DynamoClient.context.DeleteAsync<User>(id);
+            if (!await _userRepository.UserExistsAsync(userId))
+            {
+                return NotFound();
+            }
+                _userRepository.DeleteUserAsync(userId);
 
             return NoContent();
         }
